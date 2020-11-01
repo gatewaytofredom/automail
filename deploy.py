@@ -42,6 +42,14 @@ parser.add_argument(
     help="Sets the email account to associate with Certbot. This is where emails realated to your TLS certificate will be sent.",
 )
 
+parser.add_argument(
+    "--skipSSL",
+    dest="skipSSL",
+    type=bool,
+    default="false",
+    help="Skips Certbot's SSL certificate generation.",
+)
+
 args = parser.parse_args()
 
 # Check to make sure running on compatible operating system.
@@ -183,6 +191,10 @@ else:
         os.system("systemctl reload nginx")
 
         # Run certbot and obtain Let's Encrypt TLS certificate.
+
+        if args.skipSSL:
+            pass
+
         if args.certbotEmail == "postmaster":
 
             os.system(
@@ -232,7 +244,6 @@ except Exception as e:
 
 # Enable IMAP protocol for Dovecot.
 dovecotConf = open("/etc/dovecot/dovecot.conf", "a").write("protocols = imap\n")
-dovecotConf.close()
 
 # Set Dovecot to use Maildir format to store email messages.
 mailboxConf = open("/etc/dovecot/conf.d/10-mail.conf").read().splitlines()
