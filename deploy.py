@@ -157,11 +157,11 @@ if args.webserverType.lower() == "apache" and args.skipSSL == False:
         if args.certbotEmail == "postmaster":
 
             os.system(
-                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} -d {hostname} --email postmaster@{hostname}"
+                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} --email postmaster@{hostname}"
             )
         else:
             os.system(
-                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} -d {hostname} --email {args.certbotEmail}"
+                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} --email {args.certbotEmail}"
             )
 
     except Exception as e:
@@ -201,11 +201,11 @@ elif args.webserverType.lower() == "nginx" and args.skipSSL == False:
         if args.certbotEmail == "postmaster":
 
             os.system(
-                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} -d {hostname} --email postmaster@{hostname}"
+                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} --email postmaster@{hostname}"
             )
         else:
             os.system(
-                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} -d {hostname} --email {args.certbotEmail}"
+                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} --email {args.certbotEmail}"
             )
 
     except Exception as e:
