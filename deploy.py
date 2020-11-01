@@ -229,8 +229,15 @@ masterCf = open("/etc/postfix/master.cf", "a").write(
 
 # Specify location of TLS certificate and private key for Postfix.
 mainCf = open("/etc/postfix/main.cf").read().splitlines()
-mainCf[28] = f"smtpd_tls_cert_file=/etc/letsencrypt/live/{hostname}/fullchain.pem"
-mainCf[29] = f"smtpd_tls_cert_file=/etc/letsencrypt/live/{hostname}/privkey.pem"
+for index, line in enumerate(mainCf):
+    if "smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem" in line:
+        mainCf[
+            index
+        ] = f"smtpd_tls_cert_file=/etc/letsencrypt/live/{hostname}/fullchain.pem"
+    if "smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key" in line:
+        mainCf[
+            index
+        ] = f"smtpd_tls_cert_file=/etc/letsencrypt/live/{hostname}/fullchain.pem"
 open("/etc/postfix/main.cf", "w").write("\n".join(mainCf))
 
 os.system("systemctl restart postfix")
