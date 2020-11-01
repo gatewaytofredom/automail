@@ -157,11 +157,11 @@ if args.webserverType.lower() == "apache" and args.skipSSL == False:
         if args.certbotEmail == "postmaster":
 
             os.system(
-                f"certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email postmaster@{hostname} -d {hostname}"
+                f"certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email postmaster@{hostname} -d *.{hostname}"
             )
         else:
             os.system(
-                f"certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email {args.certbotEmail} -d {hostname}"
+                f"certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email {args.certbotEmail} -d *.{hostname}"
             )
 
     except Exception as e:
