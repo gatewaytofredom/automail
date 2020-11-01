@@ -283,7 +283,7 @@ for index, line in enumerate(masterConf):
         masterConf[index] = "unix_listener /var/spool/postfix/private/auth {"
     if "mode =" in line:
         masterConf[index] = "mode = 0660"
-    if "user =" in line:
+    if "user =" in line and "default" not in line:
         masterConf[index] = "user = postfix"
     if "group =" in line:
         masterConf[index] = "group = postfix"
