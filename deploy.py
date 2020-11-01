@@ -192,18 +192,17 @@ else:
 
         # Run certbot and obtain Let's Encrypt TLS certificate.
 
-        if args.skipSSL:
-            pass
+        if args.skipSSL == "false":
 
-        if args.certbotEmail == "postmaster":
+            if args.certbotEmail == "postmaster":
 
-            os.system(
-                f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email postmaster@{hostname} -d {hostname}"
-            )
-        else:
-            os.system(
-                f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email {args.certbotEmail} -d {hostname}"
-            )
+                os.system(
+                    f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email postmaster@{hostname} -d {hostname}"
+                )
+            else:
+                os.system(
+                    f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email {args.certbotEmail} -d {hostname}"
+                )
 
     except Exception as e:
         print(e)
@@ -336,11 +335,7 @@ masterConf = open("/etc/dovecot/conf.d/10-master.conf").read().splitlines()
 for index, line in enumerate(masterConf):
     if "unix_listener lmtp" in line:
         masterConf[index] = "unix_listener /var/spool/postfix/private/dovecot-lmtp {"
-    if (
-        "mode=" in line
-        and masterConf[index - 1]
-        == "unix_listener /var/spool/postfix/private/dovecot-lmtp {"
-    ):
+    if "#mode = 0666" in line and "dovecot-lmtp" in masterConf[index - 1]:
         masterConf[index] = "mode = 0600\nuser = postfix\ngroup = postfix\n"
 open("/etc/dovecot/conf.d/10-master.conf", "w").write("\n".join(masterConf))
 
