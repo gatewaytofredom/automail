@@ -342,7 +342,7 @@ for index, line in enumerate(masterConf):
 open("/etc/dovecot/conf.d/10-master.conf", "w").write("\n".join(masterConf))
 
 dovecotConf = open("/etc/postfix/main.cf", "a").write(
-    "mailbox_transport = lmtp:unix:private/dovecot-lmtp\nsmtputf8_enable = no"
+    "\nmailbox_transport = lmtp:unix:private/dovecot-lmtp\nsmtputf8_enable = no"
 )
 
 # Restart Postfix and Dovecot to enable config changes.
