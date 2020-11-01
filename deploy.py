@@ -213,7 +213,6 @@ masterCf = open("/etc/postfix/master.cf", "a").write(
     )
 )
 
-mainCf.close()
 
 # TODO: enable submission service on port 465 for Microsoft Outlook mail clients.
 
@@ -222,7 +221,6 @@ mainCf = open("/etc/postfix/main.cf").read().splitlines()
 mainCf[28] = f"smtpd_tls_cert_file=/etc/letsencrypt/live/{hostname}/fullchain.pem"
 mainCf[29] = f"smtpd_tls_cert_file=/etc/letsencrypt/live/{hostname}/privkey.pem"
 open("/etc/postfix/main.cf", "w").write("\n".join(mainCf))
-mainCf.close()
 
 os.system("systemctl restart postfix")
 
@@ -240,7 +238,6 @@ dovecotConf.close()
 mailboxConf = open("/etc/dovecot/conf.d/10-mail.conf").read().splitlines()
 mailboxConf[30] = f"mail_location = mbox:~/mail:INBOX=/var/mail/%u"
 open("/etc/postfix/main.cf", "w").write("\n".join(mailboxConf))
-mailboxConf.close()
 
 # TODO: Merge multiple openings of /etc/dovecot/conf.d/10-auth.conf into one.
 
@@ -250,13 +247,10 @@ for index, line in enumerate(mailAuthConf):
     if "disable_plaintext_auth" in line:
         mailAuthConf[index] = "disable_plaintext_auth = yes"
 open("/etc/dovecot/conf.d/10-auth.conf", "w").write("\n".join(mailAuthConf))
-mailAuthConf.close()
 
 mailAuthConf = open("/etc/dovecot/conf.d/10-auth.conf", "a").write(
     "auth_username_format = %n\nauth_mechanisms = plain login"
 )
-mailAuthConf.close()
-
 # Configure SSL/TLS Encryption.
 SSLConf = open("/etc/dovecot/conf.d/10-ssl.conf").read().splitlines()
 for index, line in enumerate(SSLConf):
@@ -271,8 +265,6 @@ for index, line in enumerate(SSLConf):
     if "ssl_min_protocol =" in line:
         SSLConf[index] = f"ssl_min_protocol = TLSv1.2"
 open("/etc/dovecot/conf.d/10-ssl.conf", "w").write("\n".join(SSLConf))
-SSLConf.close()
-
 # Configure Authentication between Postfix and Dovecot.
 masterConf = open("/etc/dovecot/conf.d/10-master.conf").read().splitlines()
 for index, line in enumerate(masterConf):
@@ -285,7 +277,6 @@ for index, line in enumerate(masterConf):
     if "group =" in line:
         masterConf[index] = "group = postfix"
 open("/etc/dovecot/conf.d/10-master.conf", "w").write("\n".join(masterConf))
-masterConf.close()
 
 # Setup auto creation of Sent and Trash folders
 
@@ -302,7 +293,6 @@ for index, line in enumerate(mailboxesConf):
     if "mailbox Sent {" in line:
         mailboxesConf[index] = "mailbox Sent {\nauto = create"
 open("/etc/dovecot/conf.d/15-mailboxes.conf", "w").write("\n".join(mailboxesConf))
-mailboxesConf.close()
 
 # Restart Postfix & Dovecot to enable new configuration changes.
 try:
@@ -319,7 +309,6 @@ except Exception as e:
     sys.exit(1)
 
 dovecotConf = open("/etc/dovecot/dovecot.conf", "a").write("protocols = imap lmtp")
-dovecotConf.close()
 
 # Set Dovecot to deliver email to message store.
 masterConf = open("/etc/dovecot/conf.d/10-master.conf").read().splitlines()
@@ -329,12 +318,10 @@ for index, line in enumerate(masterConf):
     if "mode=" in line:
         masterConf[index] = "mode = 0600\nuser = postfix\ngroup = postfix\n"
 open("/etc/dovecot/conf.d/10-master.conf", "w").write("\n".join(masterConf))
-masterConf.close()
 
 dovecotConf = open("/etc/postfix/main.cf", "a").write(
     "mailbox_transport = lmtp:unix:private/dovecot-lmtp\nsmtputf8_enable = no"
 )
-dovecotConf.close()
 
 # Restart Postfix and Dovecot to enable config changes.
 
