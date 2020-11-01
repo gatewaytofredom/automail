@@ -241,7 +241,7 @@ for index, line in enumerate(mainCf):
     if "smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key" in line:
         mainCf[
             index
-        ] = f"smtpd_tls_cert_file=/etc/letsencrypt/live/{hostname}/privkey.pem"
+        ] = f"smtpd_tls_key_file=/etc/letsencrypt/live/{hostname}/privkey.pem"
 open("/etc/postfix/main.cf", "w").write("\n".join(mainCf))
 
 os.system("systemctl restart postfix")
