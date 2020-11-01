@@ -61,5 +61,5 @@ except Exception as e:
 
 # Edit hostname in /etc/postfix/main.cf
 mainCf = open("/etc/postfix/main.cf").read().splitlines()
-maincf[37] = f"myhostname = {hostname}"
+mainCf[37] = f"myhostname = {hostname}"
 open("/etc/postfix/main.cf", "w").write("\n".join(mainCf))
