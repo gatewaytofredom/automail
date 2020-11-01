@@ -276,17 +276,27 @@ for index, line in enumerate(SSLConf):
     if "ssl_min_protocol =" in line:
         SSLConf[index] = f"ssl_min_protocol = TLSv1.2"
 open("/etc/dovecot/conf.d/10-ssl.conf", "w").write("\n".join(SSLConf))
+
 # Configure Authentication between Postfix and Dovecot.
 masterConf = open("/etc/dovecot/conf.d/10-master.conf").read().splitlines()
 for index, line in enumerate(masterConf):
-    if "unix_listener" in line:
+    if "unix_listener auth-userdb" in line:
         masterConf[index] = "unix_listener /var/spool/postfix/private/auth {"
-    if "mode =" in line:
+    if (
+        "mode = 0666" in line
+        and masterConf[index - 1] == "unix_listener /var/spool/postfix/private/auth {"
+    ):
         masterConf[index] = "mode = 0660"
-    if "user =" in line and "default" not in line:
+    if (
+        "#user = " in line
+        and masterConf[index - 2] == "unix_listener /var/spool/postfix/private/auth {"
+    ):
         masterConf[index] = "user = postfix"
-    if "group =" in line:
-        masterConf[index] = "group = postfix"
+    if (
+        "#group =" in line
+        and masterConf[index - 3] == "unix_listener /var/spool/postfix/private/auth {"
+    ):
+        masterConf[index] = "group = postfix\n}"
 open("/etc/dovecot/conf.d/10-master.conf", "w").write("\n".join(masterConf))
 
 # Setup auto creation of Sent and Trash folders
@@ -324,9 +334,13 @@ dovecotConf = open("/etc/dovecot/dovecot.conf", "a").write("protocols = imap lmt
 # Set Dovecot to deliver email to message store.
 masterConf = open("/etc/dovecot/conf.d/10-master.conf").read().splitlines()
 for index, line in enumerate(masterConf):
-    if "unix_listener" in line:
+    if "unix_listener lmtp" in line:
         masterConf[index] = "unix_listener /var/spool/postfix/private/dovecot-lmtp {"
-    if "mode=" in line:
+    if (
+        "mode=" in line
+        and masterConf[index - 1]
+        == "unix_listener /var/spool/postfix/private/dovecot-lmtp {"
+    ):
         masterConf[index] = "mode = 0600\nuser = postfix\ngroup = postfix\n"
 open("/etc/dovecot/conf.d/10-master.conf", "w").write("\n".join(masterConf))
 
