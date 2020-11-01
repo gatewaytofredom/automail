@@ -40,7 +40,7 @@ else:
 # Set hostname in /etc/hostname
 
 try:
-    os.system(f" '{hostname}' > /etc/hostname  ")
+    os.system(f" 'echo {hostname}' > /etc/hostname  ")
 except Exception as e:
     print(e)
     sys.exit(1)
