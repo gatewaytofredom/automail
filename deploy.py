@@ -80,7 +80,9 @@ except Exception as e:
     sys.exit(1)
 
 # Preseed FQDN option for postfix install.
-os.system(f'echo "postfix	postfix/mailname string {hostname}" | debconf-set-selections')
+os.system(
+    f'echo "postfix	postfix/mailname string {args.hostname}" | debconf-set-selections'
+)
 
 # Preseed Postfix to sending emails to other MTAs and receiving email from other MTAs.
 os.system(
@@ -96,7 +98,9 @@ except Exception as e:
 
 # Edit hostname.
 mainCf = open("/etc/postfix/main.cf").read().splitlines()
-mainCf[37] = f"myhostname = {hostname}"
+for index, line in enumerate(mainCf):
+    if "myhostname =" in line:
+        mainCf[index] = f"myhostname = {args.hostname}"
 open("/etc/postfix/main.cf", "w").write("\n".join(mainCf))
 
 os.system("systemctl restart postfix")
