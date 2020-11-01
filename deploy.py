@@ -4,6 +4,7 @@ import platform
 import sys
 import argparse
 import re
+from textwrap import dedent
 
 parser = argparse.ArgumentParser()
 
@@ -117,10 +118,12 @@ if args.webserver.lower() == "apache":
         virtualHostFile = open(
             f"/etc/apache2/sites-available/{hostname}.conf", "w"
         ).write(
-            f"""<VirtualHost *:80>\n
+            dedent(
+                f"""<VirtualHost *:80>\n
             \tServerName {hostname}\n
             \tDocumentRoot /var/www/{hostname}\n
             </VirtualHost>"""
+            )
         )
 
         # Create web root directory.
@@ -156,15 +159,17 @@ else:
 
         # Create the virtual host file.
         virtualHostFile = open(f"/etc/nginx/conf.d/{hostname}.conf", "w").write(
-            f"""server {{\n
+            dedent(
+                f"""server {{\n
             \tlisten 80;\n
             \tlisten [::]:80;\n
-            \tserver_name mail.your-domain.com;\n\n
-            \troot /var/www/mail.your-domain.com/;\n\n
+            \tserver_name {hostname};\n\n
+            \troot /var/www/{hostname}/;\n\n
             \tlocation ~ /.well-known/acme-challenge {{\n
             \tallow all;\n
         \t}}\n
             }}"""
+            )
         )
 
         # Create web root directory.
@@ -190,3 +195,150 @@ else:
     except Exception as e:
         print(e)
         sys.exit(1)
+
+# Enable Submission Service in Postfix.
+
+masterCf = open("/etc/postfix/master.cf", "a").write(
+    dedent(
+        """submission     inet     n    -    y    -    -    smtpd
+ \t-o syslog_name=postfix/submission
+ \t-o smtpd_tls_security_level=encrypt
+ \t-o smtpd_tls_wrappermode=no
+ \t-o smtpd_sasl_auth_enable=yes
+ \t-o smtpd_relay_restrictions=permit_sasl_authenticated,reject
+ \t-o smtpd_recipient_restrictions=permit_mynetworks,permit_sasl_authenticated,reject
+ \t-o smtpd_sasl_type=dovecot
+ \t-o smtpd_sasl_path=private/auth"""
+    )
+)
+
+mainCf.close()
+
+# TODO: enable submission service on port 465 for Microsoft Outlook mail clients.
+
+# Specify location of TLS certificate and private key for Postfix.
+mainCf = open("/etc/postfix/main.cf").read().splitlines()
+mainCf[28] = f"smtpd_tls_cert_file=/etc/letsencrypt/live/{hostname}/fullchain.pem"
+mainCf[29] = f"smtpd_tls_cert_file=/etc/letsencrypt/live/{hostname}/privkey.pem"
+open("/etc/postfix/main.cf", "w").write("\n".join(mainCf))
+mainCf.close()
+
+os.system("systemctl restart postfix")
+
+try:
+    os.system("apt install dovecot-pop3d")
+except Exception as e:
+    print(e)
+    sys.exit(1)
+
+# Enable IMAP protocol for Dovecot.
+dovecotConf = open("/etc/dovecot/dovecot.conf", "a").write("protocols = imap\n")
+dovecotConf.close()
+
+# Set Dovecot to use Maildir format to store email messages.
+mailboxConf = open("/etc/dovecot/conf.d/10-mail.conf").read().splitlines()
+mailboxConf[30] = f"mail_location = mbox:~/mail:INBOX=/var/mail/%u"
+open("/etc/postfix/main.cf", "w").write("\n".join(mailboxConf))
+mailboxConf.close()
+
+# TODO: Merge multiple openings of /etc/dovecot/conf.d/10-auth.conf into one.
+
+# Configure authentication mechanism.
+mailAuthConf = open("/etc/dovecot/conf.d/10-auth.conf").read().splitlines()
+for index, line in enumerate(mailAuthConf):
+    if "disable_plaintext_auth" in line:
+        mailAuthConf[index] = "disable_plaintext_auth = yes"
+open("/etc/dovecot/conf.d/10-auth.conf", "w").write("\n".join(mailAuthConf))
+mailAuthConf.close()
+
+mailAuthConf = open("/etc/dovecot/conf.d/10-auth.conf", "a").write(
+    "auth_username_format = %n\nauth_mechanisms = plain login"
+)
+mailAuthConf.close()
+
+# Configure SSL/TLS Encryption.
+SSLConf = open("/etc/dovecot/conf.d/10-ssl.conf").read().splitlines()
+for index, line in enumerate(SSLConf):
+    if "ssl = yes" in line:
+        SSLConf[index] = "ssl = required"
+    if "ssl_cert =" in line:
+        SSLConf[index] = f"ssl_cert = </etc/letsencrypt/live/{hostname}/fullchain.pem"
+    if "ssl_key =" in line:
+        SSLConf[index] = f"ssl_key = </etc/letsencrypt/live/{hostname}/privkey.pem"
+    if "ssl_prefer_server_ciphers =" in line:
+        SSLConf[index] = f"ssl_prefer_server_ciphers = yes"
+    if "ssl_min_protocol =" in line:
+        SSLConf[index] = f"ssl_min_protocol = TLSv1.2"
+open("/etc/dovecot/conf.d/10-ssl.conf", "w").write("\n".join(SSLConf))
+SSLConf.close()
+
+# Configure Authentication between Postfix and Dovecot.
+masterConf = open("/etc/dovecot/conf.d/10-master.conf").read().splitlines()
+for index, line in enumerate(masterConf):
+    if "unix_listener" in line:
+        masterConf[index] = "unix_listener /var/spool/postfix/private/auth {"
+    if "mode =" in line:
+        masterConf[index] = "mode = 0660"
+    if "user =" in line:
+        masterConf[index] = "user = postfix"
+    if "group =" in line:
+        masterConf[index] = "group = postfix"
+open("/etc/dovecot/conf.d/10-master.conf", "w").write("\n".join(masterConf))
+masterConf.close()
+
+# Setup auto creation of Sent and Trash folders
+
+# TODO: Create args/flags for specifying what mailboxes a user wants to create.
+
+mailboxesConf = open("/etc/dovecot/conf.d/15-mailboxes.conf").read().splitlines()
+for index, line in enumerate(mailboxesConf):
+    if "mailbox Trash {" in line:
+        mailboxesConf[index] = "mailbox Trash {\nauto = create"
+    if "mailbox Draft {" in line:
+        mailboxesConf[index] = "mailbox Draft {\nauto = create"
+    if "mailbox Junk {" in line:
+        mailboxesConf[index] = "mailbox Junk {\nauto = create"
+    if "mailbox Sent {" in line:
+        mailboxesConf[index] = "mailbox Sent {\nauto = create"
+open("/etc/dovecot/conf.d/15-mailboxes.conf", "w").write("\n".join(mailboxesConf))
+mailboxesConf.close()
+
+# Restart Postfix & Dovecot to enable new configuration changes.
+try:
+    os.system("systemctl restart dovecot")
+    os.system("systemctl restart postfix")
+except Exception as e:
+    print(e)
+    sys.exit(1)
+
+try:
+    os.system("apt install dovecot-lmtpd")
+except Exception as e:
+    print(e)
+    sys.exit(1)
+
+dovecotConf = open("/etc/dovecot/dovecot.conf", "a").write("protocols = imap lmtp")
+dovecotConf.close()
+
+# Set Dovecot to deliver email to message store.
+masterConf = open("/etc/dovecot/conf.d/10-master.conf").read().splitlines()
+for index, line in enumerate(masterConf):
+    if "unix_listener" in line:
+        masterConf[index] = "unix_listener /var/spool/postfix/private/dovecot-lmtp {"
+    if "mode=" in line:
+        masterConf[index] = "mode = 0600\nuser = postfix\ngroup = postfix\n"
+open("/etc/dovecot/conf.d/10-master.conf", "w").write("\n".join(masterConf))
+masterConf.close()
+
+dovecotConf = open("/etc/postfix/main.cf", "a").write(
+    "mailbox_transport = lmtp:unix:private/dovecot-lmtp\nsmtputf8_enable = no"
+)
+dovecotConf.close()
+
+# Restart Postfix and Dovecot to enable config changes.
+
+try:
+    os.system("systemctl restart postfix dovecot")
+except Exception as e:
+    print(e)
+    sys.exit(1)
