@@ -213,14 +213,14 @@ elif args.webserverType.lower() == "nginx" and args.skipSSL == False:
 masterCf = open("/etc/postfix/master.cf", "a").write(
     dedent(
         """submission     inet     n    -    y    -    -    smtpd
- \t-o syslog_name=postfix/submission
- \t-o smtpd_tls_security_level=encrypt
- \t-o smtpd_tls_wrappermode=no
- \t-o smtpd_sasl_auth_enable=yes
- \t-o smtpd_relay_restrictions=permit_sasl_authenticated,reject
- \t-o smtpd_recipient_restrictions=permit_mynetworks,permit_sasl_authenticated,reject
- \t-o smtpd_sasl_type=dovecot
- \t-o smtpd_sasl_path=private/auth"""
+    -o syslog_name=postfix/submission
+    -o smtpd_tls_security_level=encrypt
+    -o smtpd_tls_wrappermode=no
+    -o smtpd_sasl_auth_enable=yes
+    -o smtpd_relay_restrictions=permit_sasl_authenticated,reject
+    -o smtpd_recipient_restrictions=permit_mynetworks,permit_sasl_authenticated,reject
+    -o smtpd_sasl_type=dovecot
+    -o smtpd_sasl_path=private/auth"""
     )
 )
 
