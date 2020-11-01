@@ -37,6 +37,14 @@ else:
     print(f"Please set a FQDN. \n")
     sys.exit(1)
 
+# Set hostname in /etc/hostname
+
+try:
+    os.system(f" '{hostname}' > /etc/hostname  ")
+except Exception as e:
+    print(e)
+    sys.exit(1)
+
 # Update packages.
 try:
     os.system("apt-get update -y")
