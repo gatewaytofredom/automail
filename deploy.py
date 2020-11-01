@@ -249,7 +249,7 @@ dovecotConf = open("/etc/dovecot/dovecot.conf", "a").write("protocols = imap lmt
 # Set Dovecot to use Maildir format to store email messages.
 mailboxConf = open("/etc/dovecot/conf.d/10-mail.conf").read().splitlines()
 mailboxConf[30] = f"mail_location = mbox:~/mail:INBOX=/var/mail/%u"
-open("/etc/postfix/main.cf", "w").write("\n".join(mailboxConf))
+open("/etc/dovecot/conf.d/10-mail.conf", "w").write("\n".join(mailboxConf))
 
 # TODO: Merge multiple openings of /etc/dovecot/conf.d/10-auth.conf into one.
 
