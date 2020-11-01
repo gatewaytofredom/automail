@@ -112,11 +112,13 @@ open("/etc/aliases", "w").write("\n".join(mainCf))
 # Open ports for postfix MTA, Dovecot IMAP server, and apache server
 os.system("ufw allow 25,80,443,587,465,143,993/tcp")
 
-try:
-    os.system("apt install certbot -y")
-except Exception as e:
-    print(e)
-    sys.exit(1)
+# Install base certbot package.
+if args.skipSSL == False:
+    try:
+        os.system("apt install certbot -y")
+    except Exception as e:
+        print(e)
+        sys.exit(1)
 
 # Install TLS certificate using certbot and corresponding apache2 plugin.
 if args.webserverType.lower() == "apache" and args.skipSSL == False:
@@ -242,7 +244,7 @@ except Exception as e:
     sys.exit(1)
 
 # Enable IMAP protocol for Dovecot.
-dovecotConf = open("/etc/dovecot/dovecot.conf", "a").write("protocols = imap\n")
+dovecotConf = open("/etc/dovecot/dovecot.conf", "a").write("protocols = imap lmtp\n")
 
 # Set Dovecot to use Maildir format to store email messages.
 mailboxConf = open("/etc/dovecot/conf.d/10-mail.conf").read().splitlines()
@@ -329,7 +331,6 @@ except Exception as e:
     print(e)
     sys.exit(1)
 
-dovecotConf = open("/etc/dovecot/dovecot.conf", "a").write("protocols = imap lmtp")
 
 # Set Dovecot to deliver email to message store.
 masterConf = open("/etc/dovecot/conf.d/10-master.conf").read().splitlines()
