@@ -16,6 +16,7 @@ parser.add_argument(
     help="Sets the Hostname or FQDN to be used in configuration of the mail server.",
 )
 
+# TODO: get current user for default.
 parser.add_argument(
     "--postmaster",
     dest="postmaster",
@@ -104,15 +105,15 @@ open("/etc/aliases", "w").write("\n".join(mainCf))
 os.system("ufw allow 25,80,443,587,465,143,993/tcp")
 
 try:
-    os.system("apt install certbot")
+    os.system("apt install certbot -y")
 except Exception as e:
     print(e)
     sys.exit(1)
 
 # Install TLS certificate using certbot and corresponding apache2 plugin.
-if args.webserver.lower() == "apache":
+if args.webserverType.lower() == "apache":
     try:
-        os.system("apt install python3-certbot-apache")
+        os.system("apt install python3-certbot-apache -y")
 
         # Create the virtual host file.
         virtualHostFile = open(
@@ -155,7 +156,7 @@ if args.webserver.lower() == "apache":
 
 else:
     try:
-        os.system("apt install python3-certbot-nginx ")
+        os.system("apt install python3-certbot-nginx -y ")
 
         # Create the virtual host file.
         virtualHostFile = open(f"/etc/nginx/conf.d/{hostname}.conf", "w").write(
@@ -226,7 +227,7 @@ mainCf.close()
 os.system("systemctl restart postfix")
 
 try:
-    os.system("apt install dovecot-pop3d")
+    os.system("apt install dovecot-pop3d -y")
 except Exception as e:
     print(e)
     sys.exit(1)
@@ -312,7 +313,7 @@ except Exception as e:
     sys.exit(1)
 
 try:
-    os.system("apt install dovecot-lmtpd")
+    os.system("apt install dovecot-lmtpd -y")
 except Exception as e:
     print(e)
     sys.exit(1)
