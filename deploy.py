@@ -295,7 +295,7 @@ for index, line in enumerate(masterConf):
         "#group =" in line
         and masterConf[index - 3] == "unix_listener /var/spool/postfix/private/auth {"
     ):
-        masterConf[index] = "group = postfix\n}"
+        masterConf[index] = "group = postfix\n"
 open("/etc/dovecot/conf.d/10-master.conf", "w").write("\n".join(masterConf))
 
 # Setup auto creation of Sent and Trash folders
