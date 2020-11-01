@@ -37,14 +37,6 @@ else:
     print(f"Please set a FQDN. \n")
     sys.exit(1)
 
-# Set hostname in /etc/hostname
-
-try:
-    os.system(f"echo {hostname} > /etc/hostname")
-except Exception as e:
-    print(e)
-    sys.exit(1)
-
 # Update packages.
 try:
     os.system("apt-get update -y")
@@ -66,3 +58,8 @@ try:
 except Exception as e:
     print(e)
     sys.exit(1)
+
+# Edit hostname in /etc/postfix/main.cf
+mainCf = open("/etc/postfix/main.cf").read().splitlines()
+maincf[37] = f"myhostname = {hostname}"
+open("/etc/postfix/main.cf", "w").write("\n".join(mainCf))
