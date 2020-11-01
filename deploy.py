@@ -23,7 +23,7 @@ if "windows" in platform.system().lower():
     sys.exit(1)
 
 # Get system hostname.
-if args.hostname is "auto":
+if args.hostname == "auto":
     hostname = os.popen("hostname -f").read()
 else:
     hostname = args.hostname
