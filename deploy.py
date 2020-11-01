@@ -46,7 +46,7 @@ parser.add_argument(
     "--skipSSL",
     dest="skipSSL",
     type=bool,
-    default="false",
+    default=False,
     help="Skips Certbot's SSL certificate generation.",
 )
 
@@ -119,7 +119,7 @@ except Exception as e:
     sys.exit(1)
 
 # Install TLS certificate using certbot and corresponding apache2 plugin.
-if args.webserverType.lower() == "apache":
+if args.webserverType.lower() == "apache" and args.skipSSL == False:
     try:
         os.system("apt install python3-certbot-apache -y")
 
@@ -162,7 +162,7 @@ if args.webserverType.lower() == "apache":
         print(e)
         sys.exit(1)
 
-else:
+elif args.webserverType.lower() == "nginx" and args.skipSSL == False:
     try:
         os.system("apt install python3-certbot-nginx -y ")
 
@@ -192,17 +192,15 @@ else:
 
         # Run certbot and obtain Let's Encrypt TLS certificate.
 
-        if args.skipSSL == "false":
+        if args.certbotEmail == "postmaster":
 
-            if args.certbotEmail == "postmaster":
-
-                os.system(
-                    f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email postmaster@{hostname} -d {hostname}"
-                )
-            else:
-                os.system(
-                    f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email {args.certbotEmail} -d {hostname}"
-                )
+            os.system(
+                f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email postmaster@{hostname} -d {hostname}"
+            )
+        else:
+            os.system(
+                f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email {args.certbotEmail} -d {hostname}"
+            )
 
     except Exception as e:
         print(e)
@@ -236,7 +234,9 @@ open("/etc/postfix/main.cf", "w").write("\n".join(mainCf))
 os.system("systemctl restart postfix")
 
 try:
-    os.system("apt install dovecot-pop3d -y")
+    os.system("apt install dovecot-core -y")
+    os.system("apt install dovecot-imapd -y")
+
 except Exception as e:
     print(e)
     sys.exit(1)
@@ -324,6 +324,7 @@ except Exception as e:
 
 try:
     os.system("apt install dovecot-lmtpd -y")
+
 except Exception as e:
     print(e)
     sys.exit(1)
