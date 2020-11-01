@@ -157,11 +157,11 @@ if args.webserverType.lower() == "apache" and args.skipSSL == False:
         if args.certbotEmail == "postmaster":
 
             os.system(
-                f"certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email postmaster@{hostname} -d *.{hostname}"
+                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} -d {hostname} --email postmaster@{hostname}"
             )
         else:
             os.system(
-                f"certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email {args.certbotEmail} -d *.{hostname}"
+                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} -d {hostname} --email {args.certbotEmail}"
             )
 
     except Exception as e:
@@ -201,11 +201,11 @@ elif args.webserverType.lower() == "nginx" and args.skipSSL == False:
         if args.certbotEmail == "postmaster":
 
             os.system(
-                f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email postmaster@{hostname} -d {hostname} -d smtp.{hostname}"
+                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} -d {hostname} --email postmaster@{hostname}"
             )
         else:
             os.system(
-                f"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email {args.certbotEmail} -d {hostname} -d smtp.{hostname}"
+                f"certbot certonly --manual --preferred-challenges=dns --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.{hostname} -d {hostname} --email {args.certbotEmail}"
             )
 
     except Exception as e:
