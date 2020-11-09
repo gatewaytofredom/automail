@@ -9,7 +9,7 @@ Optionaly generates SSL certificates using [Certbot](https://certbot.eff.org/)
 #### --hostname
 Sets the Hostname or FQDN to be used in configuration of the mail server.
 
-If the hostname flag is not set it will use the system hostname if it as a FQDN.
+If the hostname flag is not set the system hostname will be used if it's a FQDN.
 
 #### --postmaster
 Sets an ailias for the Postmaster required by RFC 2142. This can be any user on the system.
