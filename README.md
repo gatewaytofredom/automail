@@ -1,6 +1,9 @@
 # AutoMail
 Automatic configurable mail server deployment script.
 
+Deploys a [Postfix](http://www.postfix.org/) Mail Transfer Agent and a [Dovecot](https://www.dovecot.org/) IMAP server.  
+Optionaly generates SSL certificates using [Certbot](https://certbot.eff.org/)
+
 ## Configuration Flags
 
 #### --hostname
