@@ -111,7 +111,7 @@ aliasesFile = open("/etc/aliases").read().splitlines()
 for line in aliasesFile:
     if line.startswith("postmaster"):
         line = f"postmaster :{args.postmaster}"
-open("/etc/aliases", "w").write("\n".join(mainCf))
+open("/etc/aliases", "w").write("\n".join(aliasesFile))
 
 # Open ports for postfix MTA, Dovecot IMAP server, and apache server
 os.system("ufw allow 25,80,443,587,465,143,993/tcp")
